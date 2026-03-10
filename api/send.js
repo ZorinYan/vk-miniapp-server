@@ -32,7 +32,7 @@ https://vk.com/id${data.user_id}
 `
 
         const params = new URLSearchParams({
-            peer_id: "2000000176",
+            peer_id: "2000000001",
             random_id: Date.now(),
             message,
             access_token: process.env.VK_TOKEN,
