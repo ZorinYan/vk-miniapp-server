@@ -136,47 +136,28 @@ export const Home: React.FC<HomeProps> = ({ id }) => {
     };
 
     const sendRequest = async () => {
-        console.log('Запуск');
-        if (!user) {
-            setAlertMessage("Не удалось получить данные пользователя VK");
-            return;
+
+        const payload = {
+            user_id: user.id,
+            name: `${user.first_name} ${user.last_name}`,
+            months,
+            groupSessions,
+            personalSessions,
+            total: formattedTotal
         }
 
-        const messageText = `
-🔥 Новая заявка на создание абонемента
+        await fetch(
+            "https://vk-miniapp-serveryan.vercel.app/api/send",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(payload)
+            }
+        )
 
-👤 ${user.first_name} ${user.last_name} 
-🔗 https://vk.com/id${user.id}
-
-📅 Срок: ${months} мес
-👥 Групповые занятия: ${groupSessions}
-👤 Индивидуальные занятия: ${personalSessions}
-
-💰 Итоговая стоимость: ${formattedTotal} ₽
-`;
-
-
-        try {
-            console.log('Отправка');
-            console.log(messageText);
-            /*bridge.send("VKWebAppCallAPIMethod", {
-                method: "messages.send",
-                request_id: "request-2",
-                params: {
-                    peer_id: 2000000176,
-                    message: messageText,
-                    random_id: Math.floor(Math.random() * 1000000),
-                    access_token: "vk1.a.8LP2h__WR2PC6SmUQqji3tS99GdXkj9dW1oWfjFpI78_yUEXEgd_QtWzCrebbcvBWOTPUB0eTHLWX_26S3CCmiS1DrjFkA3LhTLXfeg1pJ-ivY800nba28oRa7hzfUyagkptGqYK-AYwJ8E_PqRRCo6zVvA9wgLDL89Rqm-NFh9enlxjhSvMKx-3mP5RbcD2fgqb6eeSt37KHC6gfvyBBQ",
-                    v: "5.131"
-                }
-            });*/
-            
-            setAlertShown(true);
-        } catch (error) {
-            console.error("Ошибка при отправке заявки:", error);
-            setAlertMessage("Не удалось отправить заявку. Попробуйте позже.");
-        }
-    };
+    }
 
     return (
         <Panel id={id} style={{ background: "linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)", minHeight: "100vh" }}>
