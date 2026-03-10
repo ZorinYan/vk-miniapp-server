@@ -146,17 +146,23 @@ export const Home: React.FC<HomeProps> = ({ id }) => {
             total: formattedTotal
         }
 
-        await fetch(
-            "https://vk-miniapp-serveryan.vercel.app/api/send",
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(payload)
-            }
-        )
+        try {
+            const res = await fetch(
+                "https://vk-miniapp-server-yanz.vercel.app/api/send",
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                }
+            )
 
+            if (!res.ok) throw new Error("VK API error")
+
+            setAlertShown(true)
+        } catch (err) {
+            console.error(err)
+            setAlertMessage("Ошибка отправки заявки")
+        }
     }
 
     return (
