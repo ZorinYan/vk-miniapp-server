@@ -37,6 +37,9 @@ export const Home: React.FC<HomeProps> = ({ id }) => {
     const [alertMessage, setAlertMessage] = useState<string>("");
     const [user, setUser] = useState<any>(null);
 
+    const [loading, setLoading] = useState(false);
+    const [success, setSuccess] = useState(false);
+
     const groupPrice = 600;
     const personalPrice = 1300;
 
@@ -152,18 +155,28 @@ export const Home: React.FC<HomeProps> = ({ id }) => {
         }
     };
 
+    const getButtonText = () => {
+
+        if (success) return "Заявка отправлена ✓";
+        if (loading) return "Отправляем...";
+        return "Оформить заявку";
+
+    };
+
     const sendRequest = async () => {
+
+        if (loading || success) return;
 
         const totalSessions = groupSessions + personalSessions;
 
         if (totalSessions < minSessionsByMonths[months]) {
-
             setAlertMessage(
                 `Минимум ${minSessionsByMonths[months]} занятий для абонемента на ${months} мес`
             );
-
             return;
         }
+
+        setLoading(true);
 
         const payload = {
             user_id: user.id,
@@ -174,8 +187,6 @@ export const Home: React.FC<HomeProps> = ({ id }) => {
             total: formattedTotal
         };
 
-        console.log(payload);
-
         try {
 
             const res = await fetch(
@@ -185,9 +196,11 @@ export const Home: React.FC<HomeProps> = ({ id }) => {
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(payload)
                 }
-            )
+            );
 
-            if (!res.ok) throw new Error("VK API error")
+            if (!res.ok) throw new Error("API error");
+
+            setSuccess(true);
 
             setAlertShown(true);
 
@@ -200,8 +213,11 @@ export const Home: React.FC<HomeProps> = ({ id }) => {
             console.error(err);
             setAlertMessage("Ошибка отправки заявки");
 
-        }
+        } finally {
 
+            setLoading(false);
+
+        }
     };
 
     return (
@@ -353,17 +369,22 @@ export const Home: React.FC<HomeProps> = ({ id }) => {
                         size="l"
                         stretched
                         mode="primary"
+                        loading={loading}
+                        disabled={loading || success}
                         onClick={sendRequest}
                         style={{
-                            background: "linear-gradient(90deg, #9370DB 0%, #FF69B4 100%)",
+                            background: success
+                                ? "#4BB34B"
+                                : "linear-gradient(90deg, #9370DB 0%, #FF69B4 100%)",
                             color: "white",
                             borderRadius: "12px",
                             height: "56px",
                             fontSize: "16px",
-                            fontWeight: 600
+                            fontWeight: 600,
+                            transition: "all .3s ease"
                         }}
                     >
-                        Оформить заявку
+                        {getButtonText()}
                     </Button>
 
                 </Div>
