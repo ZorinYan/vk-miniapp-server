@@ -178,7 +178,7 @@ export const Home: React.FC<HomeProps> = ({ id }) => {
 
         try {
 
-            /*const res = await fetch(
+            const res = await fetch(
                 "https://vk-miniapp-server-yanz.vercel.app/api/send",
                 {
                     method: "POST",
@@ -187,7 +187,7 @@ export const Home: React.FC<HomeProps> = ({ id }) => {
                 }
             )
 
-            if (!res.ok) throw new Error("VK API error")*/
+            if (!res.ok) throw new Error("VK API error")
 
             setAlertShown(true);
 
