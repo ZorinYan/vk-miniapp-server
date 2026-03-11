@@ -19,10 +19,10 @@ export default async function handler(req, res) {
         const data = req.body
 
         const message = `
-🔥 Новая заявка
+🚀 Новая заявка на создание абонемента
 
-👤 ${data.name}
-https://vk.com/id${data.user_id}
+📍  ${data.name}
+🔗 https://vk.com/id${data.user_id}
 
 📅 ${data.months} мес
 👥 Групповые: ${data.groupSessions}

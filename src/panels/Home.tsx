@@ -17,7 +17,7 @@ import {
     Div,
     Image
 } from "@vkontakte/vkui";
-import { Icon24Rocket, Icon24User, Icon24Users } from "@vkontakte/icons";
+import { Icon28FireOutline, Icon28FireCircleFillRed, Icon24Rocket, Icon24User, Icon24Users } from "@vkontakte/icons";
 
 import LogoImage from '../assets/logo_lotos_2.png';
 import LogoImageMin from '../assets/logo_lotos.png';
@@ -28,6 +28,7 @@ interface HomeProps {
 }
 
 export const Home: React.FC<HomeProps> = ({ id }) => {
+
     const [months, setMonths] = useState<number>(1);
     const [groupSessions, setGroupSessions] = useState<number>(10);
     const [personalSessions, setPersonalSessions] = useState<number>(5);
@@ -36,50 +37,66 @@ export const Home: React.FC<HomeProps> = ({ id }) => {
     const [alertMessage, setAlertMessage] = useState<string>("");
     const [user, setUser] = useState<any>(null);
 
-    const groupPrice = 580;
-    const personalPrice = 1250;
+    const groupPrice = 600;
+    const personalPrice = 1300;
 
-    const coefficients: Record<number, number> = {
-        1: 1,
-        3: 0.95,
-        6: 0.90,
-        12: 0.85
+    // Минимум занятий для срока
+    const minSessionsByMonths: Record<number, number> = {
+        1: 5,
+        3: 20,
+        6: 30,
+        12: 50
     };
 
-    const discountPercent = Math.round((1 - coefficients[months]) * 100);
+    // функция скидки
+    const getDiscount = (sessionsPerMonth: number) => {
+        if (sessionsPerMonth >= 26) return 0.12;
+        if (sessionsPerMonth >= 16) return 0.08;
+        if (sessionsPerMonth >= 10) return 0.05;
+        if (sessionsPerMonth >= 6) return 0.03;
+        return 0;
+    };
+
+    const totalSessions = groupSessions + personalSessions;
+    const sessionsPerMonth = totalSessions / months;
+
+    const discount = getDiscount(sessionsPerMonth);
+    const discountPercent = Math.round(discount * 100);
     const isDiscount = discountPercent > 0;
 
+    const groupTotal = groupSessions * groupPrice;
+    const personalTotal = personalSessions * personalPrice;
+
     const total =
-        (groupSessions * groupPrice + personalSessions * personalPrice) *
-        coefficients[months];
+        groupTotal * (1 - discount) +
+        personalTotal * (1 - discount / 2);
 
     const formattedTotal = new Intl.NumberFormat("ru-RU").format(Math.round(total));
 
-    // Получаем данные пользователя VK при загрузке
     useEffect(() => {
+
         setUser({
             id: 230959721,
             first_name: "Test",
             last_name: "User",
             photo_200: "https://via.placeholder.com/200"
         });
-        console.log("Запуск useEffect")
+
         bridge.send("VKWebAppGetUserInfo")
             .then((data) => {
                 setUser(data);
-                console.log(data)
             })
-            .catch((error) => {
-                console.log(error);
-                // локальная разработка
-                console.log("Получили локально")
+            .catch(() => {
+
                 setUser({
                     id: 230959721,
                     first_name: "Test",
                     last_name: "User",
                     photo_200: "https://via.placeholder.com/200"
                 });
-        });
+
+            });
+
     }, []);
 
     const handlePersonSessionsChange = (value: number) => {
@@ -137,6 +154,17 @@ export const Home: React.FC<HomeProps> = ({ id }) => {
 
     const sendRequest = async () => {
 
+        const totalSessions = groupSessions + personalSessions;
+
+        if (totalSessions < minSessionsByMonths[months]) {
+
+            setAlertMessage(
+                `Минимум ${minSessionsByMonths[months]} занятий для абонемента на ${months} мес`
+            );
+
+            return;
+        }
+
         const payload = {
             user_id: user.id,
             name: `${user.first_name} ${user.last_name}`,
@@ -144,10 +172,13 @@ export const Home: React.FC<HomeProps> = ({ id }) => {
             groupSessions,
             personalSessions,
             total: formattedTotal
-        }
+        };
+
+        console.log(payload);
 
         try {
-            const res = await fetch(
+
+            /*const res = await fetch(
                 "https://vk-miniapp-server-yanz.vercel.app/api/send",
                 {
                     method: "POST",
@@ -156,14 +187,22 @@ export const Home: React.FC<HomeProps> = ({ id }) => {
                 }
             )
 
-            if (!res.ok) throw new Error("VK API error")
+            if (!res.ok) throw new Error("VK API error")*/
 
-            setAlertShown(true)
+            setAlertShown(true);
+
+            setTimeout(() => {
+                bridge.send("VKWebAppClose", { status: "success" });
+            }, 3500);
+
         } catch (err) {
-            console.error(err)
-            setAlertMessage("Ошибка отправки заявки")
+
+            console.error(err);
+            setAlertMessage("Ошибка отправки заявки");
+
         }
-    }
+
+    };
 
     return (
         <Panel id={id} style={{ background: "linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)", minHeight: "100vh" }}>
@@ -172,9 +211,39 @@ export const Home: React.FC<HomeProps> = ({ id }) => {
             </PanelHeader>
 
             <Group>
-                <Cell before={<Icon24Rocket />} after={months === 6 ? <Text weight="2" style={{ color: "#818c99" }}>Выгодно</Text> : null} multiline>
+
+                <Cell
+                    before={<Icon24Rocket />}
+                    after={
+                        isDiscount && discountPercent >= 3 && discountPercent < 5 ? (
+                            <Text weight="2" style={{ color: "#f390ff" }}>
+                                <Icon28FireOutline />
+                            </Text>
+                        ) : isDiscount && discountPercent >= 5 && discountPercent < 8 ? (
+                            <Text weight="2" style={{ color: "#f390ff" }}>
+                                <div style={{ display: "flex", gap: "4px" }}>
+                                    <Icon28FireOutline /><Icon28FireOutline />
+                                </div>
+                            </Text>
+                        ) : isDiscount && discountPercent >= 8 && discountPercent < 12 ? (
+                            <Text weight="2" style={{ color: "#f390ff" }}>
+                                <div style={{ display: "flex", gap: "4px" }}>
+                                    <Icon28FireCircleFillRed />
+                                </div>
+                            </Text>
+                        ) : isDiscount && discountPercent >= 12 ? (
+                            <Text weight="2" style={{ color: "#f390ff" }}>
+                                <div style={{ display: "flex", gap: "4px" }}>
+                                    <Icon28FireCircleFillRed /><Icon28FireCircleFillRed />
+                                </div>
+                            </Text>
+                        ) : null
+                    }
+                    multiline
+                >
                     Срок действия абонемента
                 </Cell>
+
                 <SegmentedControl
                     options={[
                         { value: 1, label: "1 мес" },
@@ -189,50 +258,139 @@ export const Home: React.FC<HomeProps> = ({ id }) => {
                 <Separator />
 
                 <Cell before={<Icon24Users />}>
-                    <Text weight="2" style={{ marginTop: 8, marginBottom: 8 }}>Групповые тренировки</Text>
-                    <Slider min={5} max={150} step={5} value={groupSessions} onChange={handleGroupSessionsChange} />
-                    <Text weight="2" style={{ marginTop: 8 }}>{groupSessions} занятий</Text>
+
+                    <Text weight="2" style={{ marginTop: 8, marginBottom: 8 }}>
+                        Групповые тренировки
+                    </Text>
+
+                    <Slider
+                        min={5}
+                        max={150}
+                        step={5}
+                        value={groupSessions}
+                        onChange={handleGroupSessionsChange}
+                    />
+
+                    <Text weight="2" style={{ marginTop: 8 }}>
+                        {groupSessions} занятий
+                    </Text>
+
                 </Cell>
 
                 <Cell before={<Icon24User />}>
-                    <Text weight="2" style={{ marginTop: 8, marginBottom: 8 }}>Индивидуальные занятия</Text>
-                    <Slider min={0} max={50} step={1} value={personalSessions} onChange={handlePersonSessionsChange} />
-                    <Text weight="2" style={{ marginTop: 8 }}>{personalSessions} занятий</Text>
+
+                    <Text weight="2" style={{ marginTop: 8, marginBottom: 8 }}>
+                        Индивидуальные занятия
+                    </Text>
+
+                    <Slider
+                        min={0}
+                        max={50}
+                        step={1}
+                        value={personalSessions}
+                        onChange={handlePersonSessionsChange}
+                    />
+
+                    <Text weight="2" style={{ marginTop: 8 }}>
+                        {personalSessions} занятий
+                    </Text>
+
                 </Cell>
+
             </Group>
 
             <Group>
+
                 <Banner
                     before={<Image size={96} src={LogoImageMin} />}
                     title="Подпишись на нас"
                     subtitle="Следи за новостями и акциями в VK"
                     after="dismiss"
-                    actions={<Button rounded appearance="accent" mode="outline" onClick={() => window.open('https://vk.com/lotos_studio_mgn')}>Подробнее</Button>}
+                    actions={
+                        <Button
+                            rounded
+                            appearance="accent"
+                            mode="outline"
+                            onClick={() => window.open('https://vk.com/lotos_studio_mgn')}
+                        >
+                            Подробнее
+                        </Button>
+                    }
                 />
+
             </Group>
 
             <FixedLayout vertical="bottom">
+
                 <Div style={{ padding: "16px" }}>
-                    <Card style={{ background: "linear-gradient(90deg, #9370DB 0%, #FF69B4 100%)", color: "white", marginBottom: "12px", boxShadow: "0 4px 12px rgba(0,0,0,0.15)", padding: "16px", borderRadius: "16px" }}>
-                        <Text weight="2" style={{ fontSize: 14, opacity: 0.9 }}>Итоговая стоимость</Text>
-                        <Title level="3" style={{ margin: "8px 0", fontSize: 28 }}>{formattedTotal} ₽</Title>
-                        {isDiscount && <Text style={{ fontSize: 12, marginTop: 4, opacity: 0.8 }}>Скидка {discountPercent}% за выбор срока</Text>}
+
+                    <Card style={{
+                        background: "linear-gradient(90deg, #9370DB 0%, #FF69B4 100%)",
+                        color: "white",
+                        marginBottom: "12px",
+                        boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                        padding: "16px",
+                        borderRadius: "16px"
+                    }}>
+
+                        <Text weight="2" style={{ fontSize: 14, opacity: 0.9 }}>
+                            Итоговая стоимость
+                        </Text>
+
+                        <Title level="3" style={{ margin: "8px 0", fontSize: 28 }}>
+                            {formattedTotal} ₽
+                        </Title>
+
+                        {isDiscount &&
+                            <Text style={{ fontSize: 12, marginTop: 4, opacity: 0.8 }}>
+                                Скидка {discountPercent}% за активность
+                            </Text>
+                        }
+
                     </Card>
 
-                    <Button size="l" stretched mode="primary" onClick={sendRequest} style={{ background: "linear-gradient(90deg, #9370DB 0%, #FF69B4 100%)", color: "white", borderRadius: "12px", height: "56px", fontSize: "16px", fontWeight: 600 }}>
+                    <Button
+                        size="l"
+                        stretched
+                        mode="primary"
+                        onClick={sendRequest}
+                        style={{
+                            background: "linear-gradient(90deg, #9370DB 0%, #FF69B4 100%)",
+                            color: "white",
+                            borderRadius: "12px",
+                            height: "56px",
+                            fontSize: "16px",
+                            fontWeight: 600
+                        }}
+                    >
                         Оформить заявку
                     </Button>
+
                 </Div>
+
             </FixedLayout>
 
-            {alertMessage && <Alert actions={[{ title: "Ок", mode: "cancel" }]} onClose={() => setAlertMessage("")}><p>{alertMessage}</p></Alert>}
+            {alertMessage &&
+                <Alert
+                    actions={[{ title: "Ок", mode: "cancel" }]}
+                    onClose={() => setAlertMessage("")}
+                >
+                    <p>{alertMessage}</p>
+                </Alert>
+            }
 
-            {alertShown && <Alert actions={[{ title: "Ок", mode: "cancel"}]} onClose={() => setAlertShown(false)}>
-                <h2>Заявка оформлена ✅</h2>
-                <h4>Ваш абонемент уже создается</h4>
-                <p>Ожидайте 💖</p>
-                <p>С Вами свяжется администратор для уточнения деталей ☎</p>
-            </Alert>}
+            {alertShown &&
+                <Alert
+                    actions={[{ title: "Ок", mode: "cancel" }]}
+                    onClose={() => setAlertShown(false)}
+                >
+                    <h2>Заявка оформлена ✅</h2>
+                    <h4>Ваш абонемент уже создается</h4>
+                    <p>Ожидайте 💖</p>
+                    <p>С Вами свяжется администратор для уточнения деталей ☎</p>
+                </Alert>
+            }
+
         </Panel>
     );
 };
