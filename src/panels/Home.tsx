@@ -3,6 +3,7 @@ import {
     Alert,
     Panel,
     PanelHeader,
+    PanelHeaderButton,
     Group,
     Cell,
     Slider,
@@ -15,9 +16,12 @@ import {
     Title,
     Separator,
     Div,
-    Image
+    Image,
+    ModalRoot,
+    ModalPage,
+    ModalPageHeader
 } from "@vkontakte/vkui";
-import { Icon28FireOutline, Icon28FireCircleFillRed, Icon24Rocket, Icon24User, Icon24Users } from "@vkontakte/icons";
+import { Icon16HelpOutline, Icon28FireOutline, Icon28FireCircleFillRed, Icon24Rocket, Icon24User, Icon24Users } from "@vkontakte/icons";
 
 import LogoImage from '../assets/logo_lotos_2.png';
 import LogoImageMin from '../assets/logo_lotos.png';
@@ -39,6 +43,8 @@ export const Home: React.FC<HomeProps> = ({ id }) => {
 
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
+
+    const [activeModal, setActiveModal] = useState<string | null>(null);
 
     const groupPrice = 600;
     const personalPrice = 1300;
@@ -204,9 +210,9 @@ export const Home: React.FC<HomeProps> = ({ id }) => {
 
             setAlertShown(true);
 
-            setTimeout(() => {
+            /*setTimeout(() => {
                 bridge.send("VKWebAppClose", { status: "success" });
-            }, 3500);
+            }, 3500);*/
 
         } catch (err) {
 
@@ -220,11 +226,65 @@ export const Home: React.FC<HomeProps> = ({ id }) => {
         }
     };
 
+    const modal = (
+        <ModalRoot activeModal={activeModal} onClose={() => setActiveModal(null)}>
+
+            <ModalPage
+                id="instruction"
+                onClose={() => setActiveModal(null)}
+                header={
+                    <ModalPageHeader>
+                        Как пользоваться?
+                    </ModalPageHeader>
+                }
+            >
+
+                <Div>
+
+                    <Title level="3">Инструкция</Title>
+
+                    <Text style={{ marginTop: 8 }}>
+                        1. Выберите подходящий Вам срок абонемента
+                    </Text>
+
+                    <Text style={{ marginTop: 8 }}>
+                        2. Укажите количество групповых тренировок
+                    </Text>
+
+                    <Text style={{ marginTop: 8 }}>
+                        3. Добавьте индивидуальные занятия
+                    </Text>
+
+                    <Text style={{ marginTop: 8 }}>
+                        4. Нажмите "Оформить заявку"
+                    </Text>
+
+                    <Separator style={{ margin: "16px 0" }} />
+
+                    <Text style={{ opacity: 0.7 }}>
+                        После отправки с вами свяжется администратор ☎
+                    </Text>
+
+                </Div>
+
+            </ModalPage>
+
+        </ModalRoot>
+    );
+
     return (
         <Panel id={id} style={{ background: "linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)", minHeight: "100vh" }}>
-            <PanelHeader before={<img src={LogoImage} style={{ width: 28, height: 28, objectFit: "contain" }} />}>
+            <PanelHeader
+                before={
+                    <PanelHeaderButton>
+                        <img src={LogoImage} width={35} height={24} />
+                    </PanelHeaderButton>
+                }
+            >
                 Собери свой абонемент
             </PanelHeader>
+
+            {modal}
 
             <Group>
 
@@ -386,6 +446,49 @@ export const Home: React.FC<HomeProps> = ({ id }) => {
                     >
                         {getButtonText()}
                     </Button>
+
+                </Div>
+
+                <Div style={{ textAlign: "center", marginTop: 8 }}>
+
+                    <Text
+                        style={{
+                            fontSize: 12,
+                            opacity: 0.7,
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
+                            gap: 6,
+                        }}
+                    >
+
+                        <Icon16HelpOutline
+                            style={{ cursor: "pointer" }}
+                            onClick={() => setActiveModal("instruction")}
+                        />
+
+                        <span
+                            onClick={() => setActiveModal("instruction")}
+                            style={{
+                                cursor: "pointer",
+                                fontWeight: 500
+                            }}
+                        >
+                            Возникли проблемы?{" "}
+                        </span>
+
+                        <span
+                            onClick={() => window.open("https://vk.com/afterrr_me")}
+                            style={{
+                                color: "#5181B8",
+                                cursor: "pointer",
+                                fontWeight: 500
+                            }}
+                        >
+                            Написать разработчику
+                        </span>
+
+                    </Text>
 
                 </Div>
 
