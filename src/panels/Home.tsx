@@ -189,7 +189,7 @@ export const Home: React.FC<HomeProps> = ({ id }) => {
         if (loading) {
             return (
                 <div style={{ width: 64, height: 64, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <Spinner size="xl" />
+                    <Spinner size="xl" style={{ color: "#dc9f50" }} />
                 </div>
             );
         }
@@ -319,27 +319,7 @@ export const Home: React.FC<HomeProps> = ({ id }) => {
 
                     <Separator style={{ margin: "16px 0" }} />
 
-                    {/*<Text
-                        //onClick={() => window.open("https://vk.com/afterrr_me")}
-                        style={{
-                            color: "#5181B8",
-                            cursor: "pointer",
-                            fontWeight: 500
-                        }}
-
-                        //TODO => На тестирование, убрать если не работает
-
-                        onClick={() =>
-                            bridge.send('VKWebAppOpenApp', {
-                                app_id: 0, // Не используется, если открываете id, но требуется параметр
-                                location: 'id230959721'
-                            })
-                        }
-
-                    >
-                        Написать разработчику
-                    </Text>*/}
-
+                    {/*TODO => На тестирование, убрать если не работает*/}
                     <Link href="https://vk.com/afterrr_me">Написать разработчику</Link>
 
                 </Div>
@@ -371,7 +351,7 @@ export const Home: React.FC<HomeProps> = ({ id }) => {
                                 size="l"
                                 mode="primary"
                                 stretched
-                                loading={loading}
+                                disabled={loading}
                                 onClick={async () => {
                                     await sendRequest();
                                 }}
