@@ -30,7 +30,7 @@ export default async function handler(req, res) {
 
 💰 Стоимость: ${data.total} ₽
 `
-
+        // сообщение админу
         const params = new URLSearchParams({
             peer_id: "2000000001",
             random_id: Date.now(),
@@ -42,6 +42,30 @@ export default async function handler(req, res) {
         await fetch("https://api.vk.com/method/messages.send", {
             method: "POST",
             body: params
+        })
+
+        // сообщение пользователю
+        const userMessage = `
+✅ Вы оставили заявку на создание абонемента
+
+Мы получили вашу заявку и начали её обработку.
+
+📩 Все дальнейшие уточнения и детали будут отправлены в этот диалог.
+
+Спасибо, что выбрали нас 💜
+`
+
+        const userParams = new URLSearchParams({
+            user_id: data.user_id,
+            random_id: Date.now() + 1,
+            message: userMessage,
+            access_token: process.env.VK_TOKEN,
+            v: "5.131"
+        })
+
+        await fetch("https://api.vk.com/method/messages.send", {
+            method: "POST",
+            body: userParams
         })
 
         return res.status(200).json({ ok: true })
