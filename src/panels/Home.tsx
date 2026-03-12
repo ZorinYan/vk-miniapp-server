@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import {
     Alert,
+    Accordion,
     Panel,
     PanelHeader,
     PanelHeaderButton,
@@ -8,23 +9,26 @@ import {
     Cell,
     Slider,
     Button,
+    ButtonGroup,
     FixedLayout,
     Card,
-    Banner,
+    Spinner,
     SegmentedControl,
     Text,
     Title,
     Separator,
+    Link,
     Div,
-    Image,
     ModalRoot,
     ModalPage,
-    ModalPageHeader
+    ModalPageHeader,
+    ModalCard,
+    Subhead,
+    Paragraph
 } from "@vkontakte/vkui";
-import { Icon16HelpOutline, Icon28FireOutline, Icon28FireCircleFillRed, Icon24Rocket, Icon24User, Icon24Users } from "@vkontakte/icons";
+import { Icon16HelpOutline, Icon28FireOutline, Icon28FireCircleFillRed, Icon24Rocket, Icon24User, Icon24Users, Icon56ClockCircleDashedOutline } from "@vkontakte/icons";
 
 import LogoImage from '../assets/logo_lotos_2.png';
-import LogoImageMin from '../assets/logo_lotos.png';
 import bridge from "@vkontakte/vk-bridge";
 
 interface HomeProps {
@@ -37,7 +41,6 @@ export const Home: React.FC<HomeProps> = ({ id }) => {
     const [groupSessions, setGroupSessions] = useState<number>(10);
     const [personalSessions, setPersonalSessions] = useState<number>(5);
 
-    const [alertShown, setAlertShown] = useState(false);
     const [alertMessage, setAlertMessage] = useState<string>("");
     const [user, setUser] = useState<any>(null);
 
@@ -169,18 +172,72 @@ export const Home: React.FC<HomeProps> = ({ id }) => {
 
     };
 
-    const sendRequest = async () => {
+    // Анимированная галочка
+    const AnimatedSuccessIcon: React.FC<{ loading: boolean; success: boolean }> = ({ loading, success }) => {
+        const [draw, setDraw] = useState(false);
 
-        if (loading || success) return;
+        useEffect(() => {
+            if (success) {
+                const timer = setTimeout(() => setDraw(true), 200);
+                return () => clearTimeout(timer);
+            } else {
+                setDraw(false);
+            }
+        }, [success]);
 
-        const totalSessions = groupSessions + personalSessions;
-
-        if (totalSessions < minSessionsByMonths[months]) {
-            setAlertMessage(
-                `Минимум ${minSessionsByMonths[months]} занятий для абонемента на ${months} мес`
+        // Loader состояние
+        if (loading) {
+            return (
+                <div style={{ width: 64, height: 64, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <Spinner size="xl" />
+                </div>
             );
-            return;
         }
+
+        // Анимация успеха
+        if (success) {
+            return (
+                <div style={{ width: 64, height: 64, margin: "0 auto" }}>
+                    <svg viewBox="0 0 52 52" style={{ width: 64, height: 64 }}>
+
+                        <circle
+                            cx="26"
+                            cy="26"
+                            r="22"
+                            fill="none"
+                            stroke="#4BB34B"
+                            strokeWidth="2"
+                            strokeDasharray="138.2"
+                            strokeDashoffset={draw ? 0 : 138.2}
+                            strokeLinecap="round"
+                            style={{
+                                transition: "stroke-dashoffset 0.6s ease"
+                            }}
+                        />
+
+                        <path
+                            d="M16 27 L23 34 L36 20"
+                            fill="none"
+                            stroke="#4BB34B"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeDasharray="30"
+                            strokeDashoffset={draw ? 0 : 30}
+                            style={{
+                                transition: "stroke-dashoffset 0.3s 0.6s ease"
+                            }}
+                        />
+
+                    </svg>
+                </div>
+            );
+        }
+
+        return null;
+    };
+
+    const sendRequest = async () => {
 
         setLoading(true);
 
@@ -207,13 +264,6 @@ export const Home: React.FC<HomeProps> = ({ id }) => {
             if (!res.ok) throw new Error("API error");
 
             setSuccess(true);
-
-            setAlertShown(true);
-
-            /*setTimeout(() => {
-                bridge.send("VKWebAppClose", { status: "success" });
-            }, 3500);*/
-
         } catch (err) {
 
             console.error(err);
@@ -225,6 +275,7 @@ export const Home: React.FC<HomeProps> = ({ id }) => {
 
         }
     };
+
 
     const modal = (
         <ModalRoot activeModal={activeModal} onClose={() => setActiveModal(null)}>
@@ -265,9 +316,101 @@ export const Home: React.FC<HomeProps> = ({ id }) => {
                         После отправки с вами свяжется администратор ☎
                     </Text>
 
+                    <Separator style={{ margin: "16px 0" }} />
+
+                    {/*<Text
+                        //onClick={() => window.open("https://vk.com/afterrr_me")}
+                        style={{
+                            color: "#5181B8",
+                            cursor: "pointer",
+                            fontWeight: 500
+                        }}
+
+                        //TODO => На тестирование, убрать если не работает
+
+                        onClick={() =>
+                            bridge.send('VKWebAppOpenApp', {
+                                app_id: 0, // Не используется, если открываете id, но требуется параметр
+                                location: 'id230959721'
+                            })
+                        }
+
+                    >
+                        Написать разработчику
+                    </Text>*/}
+
+                    <Link href="https://vk.com/afterrr_me">Написать разработчику</Link>
+
                 </Div>
 
             </ModalPage>
+
+            <ModalCard
+                id="confirm"
+                icon={
+                    loading || success
+                        ? <AnimatedSuccessIcon loading={loading} success={success} />
+                        : <Icon56ClockCircleDashedOutline style={{ color: "#dc9f50" }} />
+                }
+                onClose={() => setActiveModal(null)}
+                title={success ? "Заявка оформлена" : "Подтверждение заявки"}
+                actions={
+                    success ? (
+                        <Button
+                            size="l"
+                            stretched
+                            mode="primary"
+                            onClick={() => setActiveModal(null)}
+                        >
+                            Закрыть
+                        </Button>
+                    ) : (
+                        <ButtonGroup mode="horizontal" gap="s" stretched>
+                            <Button
+                                size="l"
+                                mode="primary"
+                                stretched
+                                loading={loading}
+                                onClick={async () => {
+                                    await sendRequest();
+                                }}
+                            >
+                                Подтвердить
+                            </Button>
+
+                            <Button
+                                size="l"
+                                mode="secondary"
+                                stretched
+                                onClick={() => setActiveModal(null)}
+                            >
+                                Отмена
+                            </Button>
+                        </ButtonGroup>
+                    )
+                }
+            >
+                {success ? (
+
+                    <Div style={{ textAlign: "center" }}>
+                        <Paragraph>
+                            {user?.first_name}, Ваш абонемент почти готов 💖
+                        </Paragraph><br/>
+
+                        <Paragraph>
+                            Администратор скоро свяжется с Вами для уточнения деталей ☎
+                        </Paragraph>
+                    </Div>
+
+                ) : (
+                    <Div style={{ textAlign: "center" }}>
+                        <Paragraph>Срок действия абонемента: {months} мес</Paragraph><br/>
+                        <Paragraph weight="3">Кол-во групповых тренировок: {groupSessions}</Paragraph><br/>
+                        <Paragraph>Кол-во индивидуальных занятий: {personalSessions}</Paragraph><br/><br/>
+                        <Title level="3">{formattedTotal} ₽</Title>
+                    </Div>
+                )}
+            </ModalCard>
 
         </ModalRoot>
     );
@@ -286,115 +429,115 @@ export const Home: React.FC<HomeProps> = ({ id }) => {
 
             {modal}
 
-            <Group>
+            <Div style={{ paddingBottom: 300 }}>
 
-                <Cell
-                    before={<Icon24Rocket />}
-                    after={
-                        isDiscount && discountPercent >= 3 && discountPercent < 5 ? (
-                            <Text weight="2" style={{ color: "#f390ff" }}>
-                                <Icon28FireOutline />
-                            </Text>
-                        ) : isDiscount && discountPercent >= 5 && discountPercent < 8 ? (
-                            <Text weight="2" style={{ color: "#f390ff" }}>
-                                <div style={{ display: "flex", gap: "4px" }}>
-                                    <Icon28FireOutline /><Icon28FireOutline />
-                                </div>
-                            </Text>
-                        ) : isDiscount && discountPercent >= 8 && discountPercent < 12 ? (
-                            <Text weight="2" style={{ color: "#f390ff" }}>
-                                <div style={{ display: "flex", gap: "4px" }}>
-                                    <Icon28FireCircleFillRed />
-                                </div>
-                            </Text>
-                        ) : isDiscount && discountPercent >= 12 ? (
-                            <Text weight="2" style={{ color: "#f390ff" }}>
-                                <div style={{ display: "flex", gap: "4px" }}>
-                                    <Icon28FireCircleFillRed /><Icon28FireCircleFillRed />
-                                </div>
-                            </Text>
-                        ) : null
-                    }
-                    multiline
-                >
-                    Срок действия абонемента
-                </Cell>
+                <Group>
 
-                <SegmentedControl
-                    options={[
-                        { value: 1, label: "1 мес" },
-                        { value: 3, label: "3 мес" },
-                        { value: 6, label: "6 мес" },
-                        { value: 12, label: "12 мес" },
-                    ]}
-                    value={months}
-                    onChange={(value) => handleMonthsChange(Number(value))}
-                />
+                    <Cell
+                        before={<Icon24Rocket />}
+                        after={
+                            isDiscount && discountPercent >= 3 && discountPercent < 5 ? (
+                                <Text weight="2" style={{ color: "#f390ff" }}>
+                                    <Icon28FireOutline />
+                                </Text>
+                            ) : isDiscount && discountPercent >= 5 && discountPercent < 8 ? (
+                                <Text weight="2" style={{ color: "#f390ff" }}>
+                                    <div style={{ display: "flex", gap: "4px" }}>
+                                        <Icon28FireOutline /><Icon28FireOutline />
+                                    </div>
+                                </Text>
+                            ) : isDiscount && discountPercent >= 8 && discountPercent < 12 ? (
+                                <Text weight="2" style={{ color: "#f390ff" }}>
+                                    <div style={{ display: "flex", gap: "4px" }}>
+                                        <Icon28FireCircleFillRed />
+                                    </div>
+                                </Text>
+                            ) : isDiscount && discountPercent >= 12 ? (
+                                <Text weight="2" style={{ color: "#f390ff" }}>
+                                    <div style={{ display: "flex", gap: "4px" }}>
+                                        <Icon28FireCircleFillRed /><Icon28FireCircleFillRed />
+                                    </div>
+                                </Text>
+                            ) : null
+                        }
+                        multiline
+                    >
+                        Срок действия абонемента
+                    </Cell>
 
-                <Separator />
-
-                <Cell before={<Icon24Users />}>
-
-                    <Text weight="2" style={{ marginTop: 8, marginBottom: 8 }}>
-                        Групповые тренировки
-                    </Text>
-
-                    <Slider
-                        min={5}
-                        max={150}
-                        step={5}
-                        value={groupSessions}
-                        onChange={handleGroupSessionsChange}
+                    <SegmentedControl
+                        options={[
+                            { value: 1, label: "1 мес" },
+                            { value: 3, label: "3 мес" },
+                            { value: 6, label: "6 мес" },
+                            { value: 12, label: "12 мес" },
+                        ]}
+                        value={months}
+                        onChange={(value) => handleMonthsChange(Number(value))}
                     />
 
-                    <Text weight="2" style={{ marginTop: 8 }}>
-                        {groupSessions} занятий
-                    </Text>
+                    <Separator style={{ margin: "10px 0" }} />
 
-                </Cell>
+                    <Cell before={<Icon24Users />}>
 
-                <Cell before={<Icon24User />}>
+                        <Text weight="2" style={{ marginTop: 8, marginBottom: 8 }}>
+                            Групповые тренировки
+                        </Text>
 
-                    <Text weight="2" style={{ marginTop: 8, marginBottom: 8 }}>
-                        Индивидуальные занятия
-                    </Text>
+                        <Slider
+                            min={5}
+                            max={150}
+                            step={5}
+                            value={groupSessions}
+                            onChange={handleGroupSessionsChange}
+                        />
 
-                    <Slider
-                        min={0}
-                        max={50}
-                        step={1}
-                        value={personalSessions}
-                        onChange={handlePersonSessionsChange}
-                    />
+                        <Text weight="2" style={{ marginTop: 8 }}>
+                            {groupSessions} занятий
+                        </Text>
 
-                    <Text weight="2" style={{ marginTop: 8 }}>
-                        {personalSessions} занятий
-                    </Text>
+                    </Cell>
 
-                </Cell>
+                    <Cell before={<Icon24User />}>
 
-            </Group>
+                        <Text weight="2" style={{ marginTop: 8, marginBottom: 8 }}>
+                            Индивидуальные занятия
+                        </Text>
 
-            <Group>
+                        <Slider
+                            min={0}
+                            max={50}
+                            step={1}
+                            value={personalSessions}
+                            onChange={handlePersonSessionsChange}
+                        />
 
-                <Banner
-                    before={<Image size={96} src={LogoImageMin} />}
-                    title="Подпишись на нас"
-                    subtitle="Следи за новостями и акциями в VK"
-                    after="dismiss"
-                    actions={
-                        <Button
-                            rounded
-                            appearance="accent"
-                            mode="outline"
-                            onClick={() => window.open('https://vk.com/lotos_studio_mgn')}
-                        >
-                            Подробнее
-                        </Button>
-                    }
-                />
+                        <Text weight="2" style={{ marginTop: 8 }}>
+                            {personalSessions} занятий
+                        </Text>
 
-            </Group>
+                    </Cell>
+                </Group>
+
+                <Separator style={{ margin: "10px 0" }} />
+
+                <Accordion>
+                    <Accordion.Summary iconPosition="before"><Text weight="2">Заморозка абонемента</Text></Accordion.Summary>
+                    <Accordion.Content>
+                        <Div>
+                            <Paragraph>В качестве заморозки абонемента используются стандартные расчёты относительно выбранного срока действия.</Paragraph>
+                            <Separator style={{ margin: "15px auto", width: "80%",  }} />
+                            <ul style={{ padding: "0 0 0 0" }}>
+                                <li><Subhead> -&gt; 1 месяц - заморозка не входит <br/></Subhead></li>
+                                <li><Subhead> -&gt; 3 месяца - включена заморозка на 14 дней<br/></Subhead></li>
+                                <li><Subhead> -&gt; 6 месяцев - включена заморозка на 21 день<br/></Subhead></li>
+                                <li><Subhead> -&gt; 12 месяцев - включена заморозка на 30 дней<br/></Subhead></li>
+                            </ul>
+                        </Div>
+                    </Accordion.Content>
+                </Accordion>
+
+            </Div>
 
             <FixedLayout vertical="bottom">
 
@@ -431,7 +574,21 @@ export const Home: React.FC<HomeProps> = ({ id }) => {
                         mode="primary"
                         loading={loading}
                         disabled={loading || success}
-                        onClick={sendRequest}
+                        onClick={() => {
+
+                            if (loading || success) return;
+
+                            const totalSessions = groupSessions + personalSessions;
+
+                            if (totalSessions < minSessionsByMonths[months]) {
+                                setAlertMessage(
+                                    `Минимум ${minSessionsByMonths[months]} занятий из общего числа для абонемента на ${months} мес`
+                                );
+                                return;
+                            }
+
+                            setActiveModal("confirm")
+                        }}
                         style={{
                             background: success
                                 ? "#4BB34B"
@@ -449,7 +606,7 @@ export const Home: React.FC<HomeProps> = ({ id }) => {
 
                 </Div>
 
-                <Div style={{ textAlign: "center", marginTop: 8 }}>
+                <Div style={{ textAlign: "center" }}>
 
                     <Text
                         style={{
@@ -476,20 +633,7 @@ export const Home: React.FC<HomeProps> = ({ id }) => {
                         >
                             Возникли проблемы?{" "}
                         </span>
-
-                        <span
-                            onClick={() => window.open("https://vk.com/afterrr_me")}
-                            style={{
-                                color: "#5181B8",
-                                cursor: "pointer",
-                                fontWeight: 500
-                            }}
-                        >
-                            Написать разработчику
-                        </span>
-
                     </Text>
-
                 </Div>
 
             </FixedLayout>
@@ -502,19 +646,6 @@ export const Home: React.FC<HomeProps> = ({ id }) => {
                     <p>{alertMessage}</p>
                 </Alert>
             }
-
-            {alertShown &&
-                <Alert
-                    actions={[{ title: "Ок", mode: "cancel" }]}
-                    onClose={() => setAlertShown(false)}
-                >
-                    <h2>Заявка оформлена ✅</h2>
-                    <h4>Ваш абонемент уже создается</h4>
-                    <p>Ожидайте 💖</p>
-                    <p>С Вами свяжется администратор для уточнения деталей ☎</p>
-                </Alert>
-            }
-
         </Panel>
     );
 };
