@@ -244,6 +244,7 @@ export const Home: React.FC<HomeProps> = ({ id }) => {
         const payload = {
             user_id: user.id,
             name: `${user.first_name} ${user.last_name}`,
+            first_name: `${user.first_name}`,
             months,
             groupSessions,
             personalSessions,
