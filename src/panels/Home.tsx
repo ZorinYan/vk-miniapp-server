@@ -276,7 +276,7 @@ export const Home: React.FC<HomeProps> = ({ id }) => {
         <Panel id={id} style={{ background: "linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)", minHeight: "100vh" }}>
             <PanelHeader
                 before={
-                    <PanelHeaderButton>
+                    <PanelHeaderButton aria-label="Логотип">
                         <img src={LogoImage} width={35} height={24} />
                     </PanelHeaderButton>
                 }
