@@ -49,6 +49,20 @@ export const Home: React.FC<HomeProps> = ({ id }) => {
 
     const [activeModal, setActiveModal] = useState<string | null>(null);
 
+    const [hasPermission, setHasPermission] = useState(false);
+
+    const requestMessagesPermission = async () => {
+        try {
+            await bridge.send("VKWebAppAllowMessagesFromGroup", {
+                group_id: 234626072
+            });
+            setHasPermission(true);
+            return true;
+        } catch {
+            return false;
+        }
+    };
+
     const groupPrice = 600;
     const personalPrice = 1300;
 
@@ -393,6 +407,57 @@ export const Home: React.FC<HomeProps> = ({ id }) => {
                 )}
             </ModalCard>
 
+            <ModalCard
+                id="messagesPermission"
+                onClose={() => setActiveModal(null)}
+                icon={<Icon56ClockCircleDashedOutline style={{ color: "#5181B8" }} />}
+                title="Разрешите сообщения"
+                actions={
+                    <ButtonGroup mode="horizontal" gap="s" stretched>
+
+                        <Button
+                            size="l"
+                            mode="primary"
+                            stretched
+                            onClick={async () => {
+                                const ok = await requestMessagesPermission();
+
+                                if (ok) {
+                                    setTimeout(() => {
+                                        setActiveModal("confirm");
+                                    }, 200);
+                                } else {
+                                    setAlertMessage("Без разрешения мы не сможем написать Вам 😔");
+                                }
+                            }}
+                        >
+                            Разрешить
+                        </Button>
+
+                        <Button
+                            size="l"
+                            mode="secondary"
+                            stretched
+                            onClick={() => {
+                                setActiveModal(null);
+                                setAlertMessage("Без разрешения мы не сможем написать Вам 😔");
+                            }}
+                        >
+                            Отмена
+                        </Button>
+
+                    </ButtonGroup>
+                }
+            >
+                <Div style={{ textAlign: "center" }}>
+                    <Paragraph>
+                        Чтобы мы могли отправить вам детали заявки на создание абонемента и связаться с Вами,
+                        нужно разрешить сообщения от сообщества 🌸<br/>
+                        Не пугайтесь, это обычная практика 💜
+                    </Paragraph>
+                </Div>
+            </ModalCard>
+
         </ModalRoot>
     );
 
@@ -568,7 +633,12 @@ export const Home: React.FC<HomeProps> = ({ id }) => {
                                 return;
                             }
 
-                            setActiveModal("confirm")
+                            if (hasPermission) {
+                                setActiveModal("confirm");
+                                return;
+                            }
+
+                            setActiveModal("messagesPermission");
                         }}
                         style={{
                             background: success
