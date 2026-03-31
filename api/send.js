@@ -75,7 +75,7 @@ ${data.first_name}, здравствуйте, Вы оставили заявку
         })
 
         const debug = await fetch(
-            `https://api.vk.com/method/messages.getConversationById?peer_id=${data.user_id}&access_token=${process.env.VK_TOKEN}&v=5.131`
+            `https://api.vk.com/method/messages.getConversationsById?peer_ids=${data.user_id}&access_token=${process.env.VK_TOKEN}&v=5.131`
         )
 
         const debugData = await debug.json()
