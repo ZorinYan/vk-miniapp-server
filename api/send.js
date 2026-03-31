@@ -77,32 +77,20 @@ ${data.first_name}, здравствуйте, Вы оставили заявку
         const userData = await userResponse.json()
 
         if (userData.response) {
-            const chatId = userData.response.peer_id
-            console.log("Chat ID:", chatId)
+            const peer_id = userData.response.peer_id
 
-            const labelParams = new URLSearchParams({
-                group_id: 234626072,
-                peer_id: chatId,
-                topic_ids: "1",
+            const markParams = new URLSearchParams({
+                peer_ids: peer_id.toString(),
+                important: 1,
+                mark_conversation_as_important: 1,
                 access_token: process.env.VK_TOKEN,
                 v: "5.131"
             })
 
-            console.log("Label params:", labelParams.toString())
-
-            const labelResponse = await fetch("https://api.vk.com/method/messages.editChat", {
+            await fetch("https://api.vk.com/method/messages.markAsImportantConversation", {
                 method: "POST",
-                body: labelParams
+                body: markParams
             })
-
-            const labelData = await labelResponse.json()
-            console.log("Label response:", JSON.stringify(labelData, null, 2))
-
-            if (labelData.error) {
-                console.error("Label error:", labelData.error)
-            } else {
-                console.log("Метка успешно применена!")
-            }
         }
 
         return res.status(200).json({ ok: true })
