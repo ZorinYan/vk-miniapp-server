@@ -31,7 +31,7 @@ export default async function handler(req, res) {
 💰 Стоимость: ${data.total} ₽
 `
         // сообщение админу
-        const params = new URLSearchParams({
+        const adminParams = new URLSearchParams({
             peer_id: "2000000001",
             random_id: Date.now(),
             message,
@@ -41,10 +41,10 @@ export default async function handler(req, res) {
 
         await fetch("https://api.vk.com/method/messages.send", {
             method: "POST",
-            body: params
+            body: adminParams
         })
 
-        // сообщение пользователю
+        // Сообщение пользователю
         const userMessage = `
 ${data.first_name}, здравствуйте, Вы оставили заявку на создание абонемента ✅
 
@@ -63,20 +63,36 @@ ${data.first_name}, здравствуйте, Вы оставили заявку
             v: "5.131"
         })
 
-        await fetch("https://api.vk.com/method/messages.send", {
+        const userResponse = await fetch("https://api.vk.com/method/messages.send", {
             method: "POST",
             body: userParams
         })
 
+        const userData = await userResponse.json()
+
+        if (userData.response) {
+            const chatId = userData.response.peer_id // ID диалога
+
+            const labelParams = new URLSearchParams({
+                peer_id: chatId,
+                topic_ids: "1", // ID метки "Абонемент-Собери сам"
+                access_token: process.env.VK_TOKEN,
+                v: "5.131"
+            })
+
+            await fetch("https://api.vk.com/method/messages.editChat", {
+                method: "POST",
+                body: labelParams
+            })
+        }
+
         return res.status(200).json({ ok: true })
 
     } catch (error) {
-
-        console.error(error)
-
+        console.error("Ошибка: ", error)
         return res.status(500).json({
-            error: "VK request failed"
+            error: "VK request failed",
+            details: error.message
         })
-
     }
 }
