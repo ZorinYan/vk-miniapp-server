@@ -97,10 +97,15 @@ ${data.first_name}, здравствуйте, Вы оставили заявку
             v: "5.131"
         })
 
-        await fetch("https://api.vk.com/method/messages.addConversationLabel", {
+        await new Promise(resolve => setTimeout(resolve, 500))
+
+        const labelResponse = await fetch("https://api.vk.com/method/messages.addConversationLabel", {
             method: "POST",
             body: labelParams
         })
+
+        const labelData = await labelResponse.json()
+        console.log("LABEL RESPONSE:", JSON.stringify(labelData, null, 2))
 
         return res.status(200).json({ ok: true })
 
