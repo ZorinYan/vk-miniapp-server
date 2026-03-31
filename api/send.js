@@ -74,6 +74,14 @@ ${data.first_name}, здравствуйте, Вы оставили заявку
             body: userParams
         })
 
+        const debug = await fetch(
+            `https://api.vk.com/method/messages.getConversationById?peer_id=${data.user_id}&access_token=${process.env.VK_TOKEN}&v=5.131`
+        )
+
+        const debugData = await debug.json()
+
+        console.log(JSON.stringify(debugData, null, 2))
+
         const userData = await userResponse.json()
 
         const peer_id = userData.response.peer_id
@@ -85,7 +93,7 @@ ${data.first_name}, здравствуйте, Вы оставили заявку
             v: "5.131"
         })
 
-        await fetch("https://api.vk.com/method/messages.addChatLabel", {
+        await fetch("https://api.vk.com/method/messages.addConversationLabel", {
             method: "POST",
             body: labelParams
         })
