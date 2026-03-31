@@ -74,6 +74,8 @@ ${data.first_name}, здравствуйте, Вы оставили заявку
             body: userParams
         })
 
+        // ======= BEGIN LOG =======
+
         const debug = await fetch(
             `https://api.vk.com/method/messages.getConversationsById?peer_ids=${data.user_id}&access_token=${process.env.VK_TOKEN}&v=5.131`
         )
@@ -82,13 +84,15 @@ ${data.first_name}, здравствуйте, Вы оставили заявку
 
         console.log(JSON.stringify(debugData, null, 2))
 
+        // ======= END LOG =======
+
         const userData = await userResponse.json()
 
         const peer_id = userData.response.peer_id
 
         const labelParams = new URLSearchParams({
             peer_id: peer_id,
-            label_ids: "1",
+            label_ids: "4897",
             access_token: process.env.VK_TOKEN,
             v: "5.131"
         })
