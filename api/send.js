@@ -86,20 +86,17 @@ ${data.first_name}, здравствуйте, Вы оставили заявку
 
         // ======= END LOG =======
 
-        const userData = await userResponse.json()
-
-        const peer_id = userData.response.peer_id
-
         const labelParams = new URLSearchParams({
-            peer_id: peer_id,
-            label_ids: "4897",
+            user_ids: 230959721,
+            message: "Новая заявка на создание абонемента 💰",
+            group_id: 234626072,
             access_token: process.env.VK_TOKEN,
             v: "5.131"
         })
 
         await new Promise(resolve => setTimeout(resolve, 500))
 
-        const labelResponse = await fetch("https://api.vk.com/method/messages.addConversationLabel", {
+        const labelResponse = await fetch("https://api.vk.com/method/notifications.sendMessage", {
             method: "POST",
             body: labelParams
         })
