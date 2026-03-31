@@ -76,22 +76,19 @@ ${data.first_name}, здравствуйте, Вы оставили заявку
 
         const userData = await userResponse.json()
 
-        if (userData.response) {
-            const peer_id = userData.response.peer_id
+        const peer_id = userData.response.peer_id
 
-            const markParams = new URLSearchParams({
-                peer_ids: peer_id.toString(),
-                important: 1,
-                mark_conversation_as_important: 1,
-                access_token: process.env.VK_TOKEN,
-                v: "5.131"
-            })
+        const labelParams = new URLSearchParams({
+            peer_id: peer_id,
+            label_ids: "1",
+            access_token: process.env.VK_TOKEN,
+            v: "5.131"
+        })
 
-            await fetch("https://api.vk.com/method/messages.markAsImportantConversation", {
-                method: "POST",
-                body: markParams
-            })
-        }
+        await fetch("https://api.vk.com/method/messages.addChatLabel", {
+            method: "POST",
+            body: labelParams
+        })
 
         return res.status(200).json({ ok: true })
 
